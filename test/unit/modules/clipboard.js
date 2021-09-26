@@ -122,6 +122,22 @@ describe('Clipboard', function() {
       expect(delta).toEqual(new Delta().insert('01\n').insert({ video: '#' }).insert('34'));
     });
 
+    it('does not execute javascript', function() {
+      window.unsafeFunction = jasmine.createSpy('unsafeFunction');
+      const html =
+        "<img src='/assets/favicon.png' onload='window.unsafeFunction()'/>";
+      this.clipboard.convert({ html });
+      expect(window.unsafeFunction).not.toHaveBeenCalled();
+      delete window.unsafeFunction;
+    });
+
+    it('xss', function() {
+      const delta = this.clipboard.convert({
+        html: '<script>alert(2);</script>',
+      });
+      expect(delta).toEqual(new Delta().insert(''));
+    });
+
     it('attributor and style match', function() {
       let delta = this.clipboard.convert('<p style="direction:rtl;">Test</p>');
       expect(delta).toEqual(new Delta().insert('Test\n', { direction: 'rtl' }));

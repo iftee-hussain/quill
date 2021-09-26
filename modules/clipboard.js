@@ -4,6 +4,7 @@ import Parchment from 'parchment';
 import Quill from '../core/quill';
 import logger from '../core/logger';
 import Module from '../core/module';
+import DOMPurify from 'dompurify';
 
 import { AlignAttribute, AlignStyle } from '../formats/align';
 import { BackgroundStyle } from '../formats/background';
@@ -74,7 +75,8 @@ class Clipboard extends Module {
 
   convert(html) {
     if (typeof html === 'string') {
-      this.container.innerHTML = html.replace(/\>\r?\n +\</g, '><'); // Remove spaces between tags
+      this.container.innerHTML = DOMPurify.sanitize(
+        html.replace(/\>\r?\n +\</g, '><'), { ADD_TAGS: ['iframe']}); // Remove spaces between tags
       return this.convert();
     }
     const formats = this.quill.getFormat(this.quill.selection.savedRange.index);
